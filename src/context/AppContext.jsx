@@ -4,9 +4,10 @@ import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
+
 export const AppContext = createContext();
 
-export const AppProvider = ({ Children }) => {
+export const AppProvider = ({ children }) => {
   const navigate = useNavigate();
   const currency = import.meta.env.VITE_CURRENCY;
 
@@ -16,7 +17,6 @@ export const AppProvider = ({ Children }) => {
   const [showLogin, setShowLogin] = useState(false);
   const [pickupDate, setPickupDate] = useState("");
   const [returnDate, setReturnDate] = useState("");
-
   const [cars, setCars] = useState([]);
 
   // Function to check if user is logged in
@@ -38,14 +38,17 @@ export const AppProvider = ({ Children }) => {
   const fetchCars = async () => {
     try {
       const { data } = await axios.get("/api/user/cars");
-      data.success ? setCars(data.cars) : toast.error(data.message);
+      if (data.success && Array.isArray(data.cars)) {
+        setCars(data.cars);
+      } else {
+        toast.error(data.message || "Failed to fetch cars");
+      }
     } catch (error) {
       toast.error(error.message);
     }
   };
 
   // Function to log out the user
-
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);
@@ -55,20 +58,20 @@ export const AppProvider = ({ Children }) => {
     toast.success("You have been logged out");
   };
 
-  // useEffect to retrieve the token from localStorage
+  // useEffect to retrieve the token from localStorage on mount
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setToken(token);
+    const storedToken = localStorage.getItem("token");
+    setToken(storedToken);
     fetchCars();
   }, []);
 
-  // useEffect to fetch user data when token is available
+  // useEffect to fetch user data when token changes
   useEffect(() => {
     if (token) {
-      axios.defaults.headers.common["Authorization"] = `${token}`;
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       fetchUser();
     }
-  }, []);
+  }, [token]);
 
   const value = {
     navigate,
@@ -93,7 +96,7 @@ export const AppProvider = ({ Children }) => {
     setReturnDate,
   };
 
-  return <AppContext.Provider value={value}>{Children}</AppContext.Provider>;
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
 export const useAppContext = () => {
