@@ -17,10 +17,20 @@ const Login = () => {
         email,
         password,
       });
+
       if (data.success) {
-        navigate("/");
+        // 1️⃣ store token and user
         setToken(data.token);
         localStorage.setItem("token", data.token);
+
+        // 2️⃣ attach token immediately to axios
+        axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
+
+        // 3️⃣ optional: store user info if returned from backend
+        // setUser(data.user);
+
+        // 4️⃣ navigate and hide login
+        navigate("/");
         setShowLogin(false);
       } else {
         toast.error(data.message);

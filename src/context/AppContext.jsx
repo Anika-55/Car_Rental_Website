@@ -19,7 +19,6 @@ export const AppProvider = ({ children }) => {
   const [returnDate, setReturnDate] = useState("");
   const [cars, setCars] = useState([]);
 
-  // Function to check if user is logged in
   const fetchUser = async () => {
     try {
       const { data } = await axios.get("/api/user/data");
@@ -34,7 +33,6 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // Function to fetch all cars from the server
   const fetchCars = async () => {
     try {
       const { data } = await axios.get("/api/user/cars");
@@ -44,7 +42,6 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // Function to log out the user
   const logout = () => {
     localStorage.removeItem("token");
     setToken(null);
@@ -54,18 +51,20 @@ export const AppProvider = ({ children }) => {
     toast.success("You have been logged out");
   };
 
-  // useEffect to retrieve the token from localStorage on mount
+  // FIX 1: do NOT call API before token attached
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setToken(token);
-    fetchCars();
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      setToken(storedToken);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
+    }
   }, []);
-
-  // useEffect to fetch user data when token available
+  // FIX 2: attach token FIRST, then call APIs
   useEffect(() => {
     if (token) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       fetchUser();
+      fetchCars();
     }
   }, [token]);
 
@@ -95,6 +94,4 @@ export const AppProvider = ({ children }) => {
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
-export const useAppContext = () => {
-  return useContext(AppContext);
-};
+export const useAppContext = () => useContext(AppContext);
