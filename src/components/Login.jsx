@@ -1,11 +1,9 @@
 import React from "react";
 import { useAppContext } from "../context/AppContext";
-import { Navigate } from "react-router-dom";
-// import { set } from "mongoose";
 import toast from "react-hot-toast";
 
 const Login = () => {
-  const { setShowLogin, axios, setToken } = useAppContext();
+  const { setShowLogin, axios, setToken, navigate } = useAppContext();
   const [state, setState] = React.useState("login");
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
@@ -20,7 +18,7 @@ const Login = () => {
         password,
       });
       if (data.success) {
-        Navigate("/");
+        navigate("/");
         setToken(data.token);
         localStorage.setItem("token", data.token);
         setShowLogin(false);

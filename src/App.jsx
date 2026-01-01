@@ -13,6 +13,7 @@ import ManageCars from "./pages/owner/ManageCars";
 import ManageBookings from "./pages/owner/ManageBookings";
 import Login from "./components/Login";
 import { useAppContext } from "./context/AppContext";
+import { Toaster } from "react-hot-toast";
 
 const App = () => {
   const { showLogin } = useAppContext();
@@ -20,6 +21,7 @@ const App = () => {
 
   return (
     <>
+      <Toaster />
       {showLogin && <Login />}
 
       {!isOwnerPath && <Navbar />}
