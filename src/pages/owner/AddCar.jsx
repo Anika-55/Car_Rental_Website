@@ -22,16 +22,32 @@ const AddCar = () => {
   });
 
   const [isLoading, setIsLoading] = useState(false);
+
   const onSubmitHandler = async (e) => {
     e.preventDefault();
     if (isLoading) return null;
+
+    if (!image) {
+      toast.error("Please upload a car image");
+      return;
+    }
+
     setIsLoading(true);
+
     try {
       const formData = new FormData();
       formData.append("image", image);
-      FormData.append("carData", JSON.stringify(car));
+      formData.append("carData", JSON.stringify(car)); // ✅ FIXED
 
-      const { data } = await axios.post("/api/owner/add-car", formData);
+      const token = localStorage.getItem("token");
+
+      const { data } = await axios.post("/api/owner/add-car", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       if (data.success) {
         toast.success(data.message);
         setImage(null);
@@ -51,11 +67,12 @@ const AddCar = () => {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.response?.data?.message || error.message);
     } finally {
       setIsLoading(false);
     }
   };
+
   return (
     <div className="px-4 py-10 md:px-10 flex-1">
       <Title
@@ -92,7 +109,7 @@ const AddCar = () => {
             <label>Brand</label>
             <input
               type="text"
-              placeholder="e.g. BMW, M ercedes, Audi...."
+              placeholder="e.g. BMW, Mercedes, Audi...."
               required
               className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
               value={car.brand}
@@ -112,8 +129,9 @@ const AddCar = () => {
             />
           </div>
         </div>
+
         {/* car year, price, category */}
-        <div className="grid grid-cols-1 sm:grid-cols-2  md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           <div className="flex flex-col w-full">
             <label>Year</label>
             <input
@@ -151,7 +169,7 @@ const AddCar = () => {
           </div>
         </div>
 
-        {/* car Transmission, Fuel type, seating capacity*/}
+        {/* Transmission, Fuel type, Seating */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex flex-col w-full">
             <label>Transmission</label>
@@ -196,6 +214,7 @@ const AddCar = () => {
             />
           </div>
         </div>
+
         {/* car location */}
         <div className="flex flex-col w-full">
           <label>Location</label>
@@ -211,12 +230,13 @@ const AddCar = () => {
             <option value="Chicago">Chicago</option>
           </select>
         </div>
+
         {/* car description */}
         <div className="flex flex-col w-full">
           <label>Description</label>
           <textarea
-            row={6}
-            placeholder="e.g.A luxurious SUV with a spacious interior and a powerful engine"
+            rows={6}
+            placeholder="e.g. A luxurious SUV with a spacious interior and a powerful engine"
             required
             className="px-3 py-2 mt-1 border border-borderColor rounded-md outline-none"
             value={car.description}
