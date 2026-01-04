@@ -23,7 +23,8 @@ const Hero = () => {
   return (
     <div className="h-screen flex flex-col items-center justify-center gap-14 bg-light text-center">
       <h1 className="text-4xl md:text-5xl font-semibold">
-        Luxury cars on Rent
+        LUXEDRIVE <br />
+        <p className="text-xl mt-2 text-gray-500">Need to Rent a Luxury Car?</p>
       </h1>
 
       <form

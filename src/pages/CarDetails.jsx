@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { assets, dummyCarData } from "../assets/assets";
+import { assets } from "../assets/assets";
 import Loader from "../components/Loader";
 import { useAppContext } from "../context/AppContext";
 import toast from "react-hot-toast";
@@ -103,7 +103,7 @@ const CarDetails = () => {
                   "Rear View",
                   "Mirror",
                 ].map((item) => (
-                  <li ley={item} className="flex items-center text-gray-500">
+                  <li key={item} className="flex items-center text-gray-500">
                     <img src={assets.check_icon} alt="" className="h-4 mr-2 " />
                     {item}
                   </li>

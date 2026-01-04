@@ -1,3 +1,5 @@
+//context/AppContext.jsx
+
 import { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
@@ -53,12 +55,13 @@ export const AppProvider = ({ children }) => {
 
   // FIX 1: do NOT call API before token attached
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
+    const storedToken = localStorage.getItem("token"); // ✅ matches Login component
     if (storedToken) {
       setToken(storedToken);
       axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
     }
   }, []);
+
   // FIX 2: attach token FIRST, then call APIs
   useEffect(() => {
     if (token) {

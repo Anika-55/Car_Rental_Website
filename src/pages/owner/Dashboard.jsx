@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { Line, Doughnut, Bar } from "react-chartjs-2";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAppContext } from "../../context/AppContext";
 import toast from "react-hot-toast";
 import { assets } from "../../assets/assets";
 import Title from "../../components/Title";
-
-// Chart.js imports
+import { motion } from "framer-motion";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -19,7 +27,6 @@ import {
   Legend,
 } from "chart.js";
 
-// Register Chart.js components and Filler plugin
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -32,81 +39,9 @@ ChartJS.register(
   Legend
 );
 
-// --- Dashboard Card Component ---
-const DashboardCard = ({ title, value, icon }) => (
-  <div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-md border border-gray-200">
-    <div>
-      <h3 className="text-sm text-gray-500">{title}</h3>
-      <p className="text-xl font-semibold">{value}</p>
-    </div>
-    <div className="flex items-center justify-center w-12 h-12 bg-indigo-50 rounded-full">
-      <img src={icon} alt={title} className="w-6 h-6" />
-    </div>
-  </div>
-);
-
-// --- Recent Bookings Table Component ---
-const RecentBookingsTable = ({ bookings = [], currency }) => (
-  <div className="overflow-x-auto border border-gray-200 rounded-lg p-4 mb-8 bg-white shadow-sm">
-    <h2 className="text-lg font-medium mb-4">Recent Bookings</h2>
-    <table className="min-w-full divide-y divide-gray-200">
-      <thead className="bg-gray-50">
-        <tr>
-          <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">
-            Car
-          </th>
-          <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">
-            Date
-          </th>
-          <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">
-            Price
-          </th>
-          <th className="px-4 py-2 text-left text-sm font-semibold text-gray-600">
-            Status
-          </th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-gray-100">
-        {bookings.length === 0 ? (
-          <tr>
-            <td colSpan={4} className="px-4 py-2 text-center text-gray-500">
-              No bookings found.
-            </td>
-          </tr>
-        ) : (
-          bookings.map((booking, idx) => (
-            <tr key={idx} className="hover:bg-gray-50">
-              <td className="px-4 py-2">
-                {booking.car.brand} {booking.car.model}
-              </td>
-              <td className="px-4 py-2">{booking.createdAt?.split("T")[0]}</td>
-              <td className="px-4 py-2">
-                {currency}
-                {booking.price}
-              </td>
-              <td className="px-4 py-2">
-                <span
-                  className={`px-2 py-0.5 rounded-full text-sm font-medium ${
-                    booking.status === "Pending"
-                      ? "bg-yellow-100 text-yellow-800"
-                      : booking.status === "Confirmed"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {booking.status}
-                </span>
-              </td>
-            </tr>
-          ))
-        )}
-      </tbody>
-    </table>
-  </div>
-);
-
 const Dashboard = () => {
-  const { axios, isOwner, currency } = useAppContext();
+  const { axios, isOwner, token, currency } = useAppContext();
+
   const [data, setData] = useState({
     totalCars: 0,
     totalBookings: 0,
@@ -117,42 +52,31 @@ const Dashboard = () => {
     bookingsPerCarModel: [],
   });
 
-  // Fetch dashboard data
+  useEffect(() => {
+    if (token && isOwner) fetchDashboardData();
+  }, [token, isOwner]);
+
   const fetchDashboardData = async () => {
     try {
-      const res = await axios.get("api/owner/dashboard");
-      if (res.data.success) setData(res.data.dashboardData);
-      else toast.error(res.data.message);
+      const res = await axios.get("/api/owner/dashboard");
+      if (res.data.success) {
+        const d = res.data.dashboardData;
+        setData({
+          totalCars: d.totalCars || 0,
+          totalBookings: d.totalBookings || 0,
+          pendingBookings: d.pendingBookings || 0,
+          completedBookings: d.completedBookings || 0,
+          recentBookings: d.recentBookings || [],
+          monthlyRevenueByMonth: d.monthlyRevenueByMonth || Array(12).fill(0),
+          bookingsPerCarModel: d.bookingsPerCarModel || [],
+        });
+      } else toast.error(res.data.message);
     } catch (error) {
       toast.error(error.message);
     }
   };
 
-  useEffect(() => {
-    if (isOwner) fetchDashboardData();
-  }, [isOwner]);
-
-  // --- Dashboard Cards ---
-  const cards = [
-    { title: "Total Cars", value: data.totalCars, icon: assets.carIconColored },
-    {
-      title: "Total Bookings",
-      value: data.totalBookings,
-      icon: assets.listIconColored,
-    },
-    {
-      title: "Pending Bookings",
-      value: data.pendingBookings,
-      icon: assets.cautionIconColored,
-    },
-    {
-      title: "Completed Bookings",
-      value: data.completedBookings,
-      icon: assets.listIconColored,
-    },
-  ];
-
-  // --- Charts Data ---
+  // Chart data
   const bookingStatusData = {
     labels: ["Pending", "Confirmed", "Others"],
     datasets: [
@@ -165,7 +89,7 @@ const Dashboard = () => {
             data.totalBookings - data.pendingBookings - data.completedBookings
           ),
         ],
-        backgroundColor: ["#FBBF24", "#10B981", "#EF4444"],
+        backgroundColor: ["#FACC15", "#34D399", "#F87171"],
         hoverOffset: 10,
       },
     ],
@@ -189,61 +113,174 @@ const Dashboard = () => {
     datasets: [
       {
         label: "Revenue",
-        data: data.monthlyRevenueByMonth || Array(12).fill(0),
+        data: data.monthlyRevenueByMonth,
         borderColor: "#3B82F6",
-        backgroundColor: "rgba(59,130,246,0.2)",
-        tension: 0.3,
+        backgroundColor: "rgba(59,130,246,0.1)",
         fill: true,
+        tension: 0.3,
       },
     ],
   };
 
   const bookingsPerCarModelData = {
-    labels: data.bookingsPerCarModel?.map((b) => b.model) || [],
+    labels: data.bookingsPerCarModel.length
+      ? data.bookingsPerCarModel.map((b) => b.model)
+      : ["No Data"],
     datasets: [
       {
         label: "Bookings",
-        data: data.bookingsPerCarModel?.map((b) => b.count) || [],
-        backgroundColor: "#10B981",
+        data: data.bookingsPerCarModel.length
+          ? data.bookingsPerCarModel.map((b) => b.count)
+          : [0],
+        backgroundColor: "#34D399",
       },
     ],
   };
+  const cardInfo = [
+    {
+      title: "Total Cars",
+      value: data.totalCars,
+      icon: assets.carIconColored,
+      color: "bg-slate-50 text-slate-900",
+    },
+    {
+      title: "Total Bookings",
+      value: data.totalBookings,
+      icon: assets.listIconColored,
+      color: "bg-slate-50 text-slate-900",
+    },
+    {
+      title: "Pending",
+      value: data.pendingBookings,
+      icon: assets.cautionIconColored,
+      color: "bg-yellow-50 text-yellow-800",
+    },
+    {
+      title: "Completed",
+      value: data.completedBookings,
+      icon: assets.listIconColored,
+      color: "bg-green-50 text-green-800",
+    },
+  ];
 
   return (
-    <div className="px-4 pt-10 md:px-10 flex-1">
-      <Title
-        title="Admin Dashboard"
-        subTitle="Monitor overall platform performance"
-      />
+    <div className="min-h-screen p-6 space-y-6 bg-gray-100 dark:bg-gray-900">
+      <Title title="Owner Dashboard" subTitle="Monitor your cars & bookings" />
 
       {/* Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 my-8">
-        {cards.map((card, idx) => (
-          <DashboardCard key={idx} {...card} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        {cardInfo.map((card, i) => (
+          <motion.div
+            key={i}
+            whileHover={{ scale: 1.03 }}
+            className={`relative overflow-hidden p-5 rounded-xl shadow hover:shadow-lg transition-shadow ${card.color}`}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm opacity-80">{card.title}</p>
+                <h1 className="text-2xl font-bold mt-1">{card.value}</h1>
+              </div>
+              <img src={card.icon} alt="" className="w-7 h-7" />
+            </div>
+          </motion.div>
         ))}
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="p-4 border border-gray-200 rounded-md bg-white shadow-sm">
-          <h2 className="font-medium mb-2">Monthly Revenue</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-xl shadow"
+        >
+          <h2 className="mb-4 font-semibold text-gray-700 dark:text-gray-200">
+            Revenue Analytics
+          </h2>
           <Line data={monthlyRevenueData} />
-        </div>
-        <div className="p-4 border border-gray-200 rounded-md bg-white shadow-sm">
-          <h2 className="font-medium mb-2">Booking Status</h2>
+        </motion.div>
+
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow"
+        >
+          <h2 className="mb-4 font-semibold text-gray-700 dark:text-gray-200">
+            Booking Status
+          </h2>
           <Doughnut data={bookingStatusData} />
-        </div>
-        <div className="p-4 border border-gray-200 rounded-md md:col-span-2 bg-white shadow-sm">
-          <h2 className="font-medium mb-2">Bookings per Car Model</h2>
+        </motion.div>
+
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          className="lg:col-span-3 bg-white dark:bg-gray-800 p-6 rounded-xl shadow"
+        >
+          <h2 className="mb-4 font-semibold text-gray-700 dark:text-gray-200">
+            Most Booked Cars
+          </h2>
           <Bar data={bookingsPerCarModelData} />
-        </div>
+        </motion.div>
       </div>
 
-      {/* Recent Bookings Table */}
-      <RecentBookingsTable
-        bookings={data.recentBookings || []}
-        currency={currency}
-      />
+      {/* Recent Bookings */}
+      <motion.div
+        whileHover={{ scale: 1.01 }}
+        className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow"
+      >
+        <h2 className="mb-4 font-semibold text-gray-700 dark:text-gray-200">
+          Recent Bookings
+        </h2>
+        <ScrollArea className="h-72">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Car</TableHead>
+                <TableHead>Date</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.recentBookings.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center">
+                    No bookings found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                data.recentBookings.map((booking, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>
+                      {booking.car
+                        ? `${booking.car.brand} ${booking.car.model}`
+                        : "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      {booking.createdAt
+                        ? booking.createdAt.split("T")[0]
+                        : "N/A"}
+                    </TableCell>
+                    <TableCell>
+                      {currency}
+                      {booking.price || 0}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-sm font-medium ${
+                          booking.status === "pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : booking.status === "confirmed"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {booking.status}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+      </motion.div>
     </div>
   );
 };

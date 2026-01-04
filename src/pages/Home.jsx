@@ -5,6 +5,8 @@ import Banner from "../components/Banner";
 import Testimonial from "../components/Testimonial";
 import Newsletter from "../components/Newsletter";
 import Banner2 from "../components/Banner2";
+import BookingSteps from "@/components/BookingSteps";
+import OfferSection from "@/components/OfferSection";
 const Home = () => {
   return (
     <>
@@ -12,8 +14,11 @@ const Home = () => {
       <FeaturedSection></FeaturedSection>
       <Banner2></Banner2>
       <Banner></Banner>
+      <BookingSteps />
 
       <Testimonial></Testimonial>
+
+      <OfferSection />
       <Newsletter></Newsletter>
     </>
   );
