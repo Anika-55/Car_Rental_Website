@@ -1,16 +1,34 @@
-# React + Vite
+# 🚗 Car Rental Web Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A full-featured Car Rental platform built with **MERN stack** (MongoDB, Express, React, Node.js) and **ImageKit** for image uploads.  
+This project allows **users** to browse and book cars, while **owners** can list cars, manage bookings, and track revenue through a dashboard.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Live -Link:https://keen-begonia-a8bec9.netlify.app
 
-## React Compiler
+## 🔥 Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### User Features:
+- Sign up / Login with JWT authentication
+- Browse cars by location and availability
+- Book cars for selected date ranges
+- View booking history and status
 
-## Expanding the ESLint configuration
+### Owner Features:
+- Upgrade account to "Owner"
+- Add, update, or remove cars
+- Toggle car availability
+- View bookings (recent, pending, completed)
+- Dashboard analytics:
+  - Total cars & bookings
+  - Monthly revenue
+  - Most booked cars
+- Update profile image
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Tech Stack:
+- **Backend:** Node.js, Express, MongoDB, Mongoose, JWT, ImageKit
+- **Frontend:** React, Axios, Tailwind CSS, Framer Motion, Chart.js
+- **Hosting:** Backend → Vercel, Frontend → Netlify
+
+
